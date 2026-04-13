@@ -1,0 +1,1 @@
+-- Raw External Table Creation (Final Version)
