@@ -1,1 +1,0 @@
--- Partitioned + Bucketed Curated Table

@@ -1,1 +1,0 @@
--- Single-scan Optimized Data Quality Insert
