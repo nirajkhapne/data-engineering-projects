@@ -13,7 +13,7 @@
 --     return NULL for empty strings in some Hive versions — the CASE guard
 --     makes intent explicit and behavior version-independent.
 --   * INSERT OVERWRITE: idempotent pattern — re-running the job won't
---     duplicate data, unlike INSERT INTO.
+--     duplicate data, unlike INSERT INTO
 -- =============================================================================
 
 USE hive_db;
