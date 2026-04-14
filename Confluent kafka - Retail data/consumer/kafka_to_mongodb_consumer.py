@@ -1,12 +1,15 @@
 import os
 import logging
 import time
+from dotenv import load_dotenv
 from collections import defaultdict
 from confluent_kafka import DeserializingConsumer, Producer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroDeserializer
 from confluent_kafka.serialization import StringDeserializer
 from pymongo import MongoClient, errors, UpdateOne
+
+load_dotenv()
 
 # -----------------------------
 # Logging
