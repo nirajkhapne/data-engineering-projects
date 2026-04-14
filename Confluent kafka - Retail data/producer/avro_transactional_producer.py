@@ -1,10 +1,13 @@
 import os
 import logging
 import pandas as pd
+from dotenv import load_dotenv
 from confluent_kafka import SerializingProducer, KafkaException
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer
 from confluent_kafka.serialization import StringSerializer
+
+load_dotenv()
 
 # -----------------------------
 # Logging
