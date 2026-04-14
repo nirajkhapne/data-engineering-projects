@@ -1,7 +1,7 @@
 -- =============================================================================
 -- FILE: 01_create_raw_external_table.sql
 -- PURPOSE: Land raw CSV data as an EXTERNAL table pointing to HDFS location.
---          External = Hive doesn't own the data; DROP TABLE won't delete files.
+--          External = Hive doesn't own the data, DROP TABLE won't delete files.
 --          This is the correct pattern for raw ingestion layers.
 -- ENGINE: Apache Hive 3.1.3 on Tez / YARN
 -- =============================================================================
