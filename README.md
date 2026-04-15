@@ -1,12 +1,12 @@
 # 👋 Hi, I'm Niraj
 
-### Data Engineer | Kafka | Hive | Real-Time & Batch Data Pipelines
+### Data Analyst/Engineer | Kafka | Hive | PySpark | ETL |
 
 ---
 
 ## 🚀 About Me
 
-Data Engineer with ~3 years of experience building **scalable data pipelines across batch and streaming systems**.
+Data Engineer with ~3.5 years of experience building **scalable data pipelines across batch and streaming systems**.
 
 I work on designing **reliable, fault-tolerant data architectures**, with hands-on experience in:
 
