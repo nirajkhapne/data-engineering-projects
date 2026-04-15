@@ -57,7 +57,7 @@ Currently focused on strengthening:
 * Achieved **effectively-once processing using idempotent sink**
 * Implemented **batch consumption, retry logic, and backpressure handling**
 
-👉 [View Project](https://github.com/<your-username>/<repo-name>)
+👉 [View Project](https://github.com/nirajkhapne/data-engineering-projects/tree/main/Confluent%20kafka%20-%20Retail%20data)
 
 ---
 
