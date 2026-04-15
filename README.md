@@ -92,8 +92,8 @@ Currently focused on strengthening:
 
 ## 📫 Connect With Me
 
-* LinkedIn: <your-link>
-* Email: <your-email>
+* LinkedIn: https://www.linkedin.com/in/niraj-khapne/
+* Email: nirajrkhapne@gmail.com
 
 ---
 
