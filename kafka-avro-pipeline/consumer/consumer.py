@@ -40,7 +40,7 @@ def run(instance_id):
         record = msg.value()
         record_id = record["ID"]
 
-        # 🔥 DEDUP CHECK
+        # DEDUP CHECK
         if is_processed(record_id, processed_ids):
             continue
 
