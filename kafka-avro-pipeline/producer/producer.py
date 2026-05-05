@@ -1,5 +1,5 @@
-import time
 import os
+import time
 from confluent_kafka import SerializingProducer
 from confluent_kafka.serialization import StringSerializer
 from confluent_kafka.schema_registry import SchemaRegistryClient
@@ -7,18 +7,6 @@ from confluent_kafka.schema_registry.avro import AvroSerializer
 
 from producer.db import fetch_data
 from producer.checkpoint import get_last_ts, update_last_ts
-
-
-def retry_produce(producer, topic, key, value, retries=3):
-    for i in range(retries):
-        try:
-            producer.produce(topic=topic, key=key, value=value)
-            return
-        except Exception as e:
-            print(f"Retry {i+1} failed: {e}")
-            time.sleep(2)
-    raise Exception("Max retries exceeded")
-
 
 def run():
 
@@ -28,13 +16,18 @@ def run():
 
     schema_str = open("schemas/product.avsc").read()
 
-    avro_serializer = AvroSerializer(schema_registry, schema_str)
-
     producer = SerializingProducer({
         "bootstrap.servers": os.getenv("KAFKA_BOOTSTRAP"),
+        "enable.idempotence": True,
+        "acks": "all",
+        "retries": 5,
+        "max.in.flight.requests.per.connection": 5,
+        "transactional.id": "product-producer-1",
         "key.serializer": StringSerializer(),
-        "value.serializer": avro_serializer
+        "value.serializer": AvroSerializer(schema_registry, schema_str)
     })
+
+    producer.init_transactions()
 
     last_ts = get_last_ts()
     rows = fetch_data(last_ts)
@@ -43,32 +36,36 @@ def run():
         print("No new data")
         return
 
-    max_ts = None  # SAFE checkpoint tracking
+    max_ts = None
 
-    for row in rows:
+    try:
+        producer.begin_transaction()
 
-        original_ts = row["last_updated"]  
+        for row in rows:
+            original_ts = row["last_updated"]
 
-        # track max timestamp BEFORE mutation
-        if max_ts is None or original_ts > max_ts:
-            max_ts = original_ts
+            if max_ts is None or original_ts > max_ts:
+                max_ts = original_ts
 
-        # convert only for Kafka
-        row["last_updated"] = int(original_ts.timestamp() * 1000)
+            # convert for Avro
+            row["last_updated"] = int(original_ts.timestamp() * 1000)
 
-        retry_produce(
-            producer,
-            "product_updates",
-            str(row["ID"]),
-            row
-        )
+            producer.produce(
+                topic="product_updates",
+                key=str(row["ID"]),
+                value=row
+            )
 
-    producer.flush()
+        producer.commit_transaction()
 
-    # store checkpoint in MySQL format (NOT epoch)
-    update_last_ts(max_ts.strftime("%Y-%m-%d %H:%M:%S"))
+        # update checkpoint ONLY after successful commit
+        update_last_ts(max_ts.strftime("%Y-%m-%d %H:%M:%S"))
 
-    print("Data published successfully")
+        print("Transaction committed")
+
+    except Exception as e:
+        print("Transaction failed:", e)
+        producer.abort_transaction()
 
 
 if __name__ == "__main__":
