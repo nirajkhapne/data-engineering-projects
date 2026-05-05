@@ -77,3 +77,42 @@ MySQL → Kafka (Avro + Schema Registry) → Spark Structured Streaming → S3 (
 ### 1. Start Infrastructure
 ```bash
 docker-compose up -d
+```
+
+### 2. Create Kafka Topics
+```bash
+kafka-topics --create \
+--topic product_updates \
+--bootstrap-server localhost:9092 \
+--partitions 10 \
+--replication-factor 1
+```
+
+```bash
+kafka-topics --create \
+--topic product_dlq \
+--bootstrap-server localhost:9092 \
+--partitions 3 \
+--replication-factor 1
+```
+
+### 3. Run Producer
+```bash
+python producer/producer.py
+```
+
+### 4. Start Spark Streaming
+```bash
+spark-submit spark/stream.py
+```
+
+### 5. Run Airflow (Optional Orchestration)
+```bash
+airflow webserver
+airflow scheduler
+```
+
+### 6. Output
+```bash
+s3://data-lake/products/
+```
