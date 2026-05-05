@@ -4,8 +4,8 @@ from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroDeserializer
 
 from consumer.transformer import transform
-from consumer.dlq_producer import send_to_dlq
 from consumer.writer import write_json
+from consumer.dlq_producer import send_to_dlq
 
 import os
 import sys
@@ -43,6 +43,7 @@ def run(instance_id):
 
         except Exception as e:
             send_to_dlq(msg.value(), str(e))
+
 
 if __name__ == "__main__":
     run(sys.argv[1])
