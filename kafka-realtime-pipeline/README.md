@@ -17,10 +17,20 @@ MySQL → Kafka (Avro) → Consumer Group → JSON Output
 ### 1. Setup
 ```bash
 pip install -r requirements.txt
+```
 
+### 2. Start infra
+```bash
 docker-compose up -d
+```
 
+### 3. Run producer
+```bash
 python producer/producer.py
+```
 
+### 4. Run consumers
+```bash
 python consumer/consumer.py 1
 python consumer/consumer.py 2
+```
