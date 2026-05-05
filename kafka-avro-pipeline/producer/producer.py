@@ -1,4 +1,5 @@
 import time
+import os
 from confluent_kafka import SerializingProducer
 from confluent_kafka.serialization import StringSerializer
 from confluent_kafka.schema_registry import SchemaRegistryClient
@@ -7,14 +8,6 @@ from confluent_kafka.schema_registry.avro import AvroSerializer
 from producer.db import fetch_data
 from producer.checkpoint import get_last_ts, update_last_ts
 
-import os
-import json
-
-def delivery_report(err, msg):
-    if err:
-        print(f"Delivery failed: {err}")
-    else:
-        print(f"Sent to {msg.topic()} [{msg.partition()}]")
 
 def retry_produce(producer, topic, key, value, retries=3):
     for i in range(retries):
@@ -25,6 +18,7 @@ def retry_produce(producer, topic, key, value, retries=3):
             print(f"Retry {i+1} failed: {e}")
             time.sleep(2)
     raise Exception("Max retries exceeded")
+
 
 def run():
 
@@ -49,8 +43,18 @@ def run():
         print("No new data")
         return
 
+    max_ts = None  # SAFE checkpoint tracking
+
     for row in rows:
-        row["last_updated"] = int(row["last_updated"].timestamp() * 1000)
+
+        original_ts = row["last_updated"]  
+
+        # track max timestamp BEFORE mutation
+        if max_ts is None or original_ts > max_ts:
+            max_ts = original_ts
+
+        # convert only for Kafka
+        row["last_updated"] = int(original_ts.timestamp() * 1000)
 
         retry_produce(
             producer,
@@ -61,8 +65,11 @@ def run():
 
     producer.flush()
 
-    max_ts = max(r["last_updated"] for r in rows)
+    # store checkpoint in MySQL format (NOT epoch)
     update_last_ts(max_ts.strftime("%Y-%m-%d %H:%M:%S"))
+
+    print("Data published successfully")
+
 
 if __name__ == "__main__":
     run()
