@@ -12,9 +12,9 @@ import json
 
 def delivery_report(err, msg):
     if err:
-        print(f"❌ Delivery failed: {err}")
+        print(f"Delivery failed: {err}")
     else:
-        print(f"✅ Sent to {msg.topic()} [{msg.partition()}]")
+        print(f"Sent to {msg.topic()} [{msg.partition()}]")
 
 def retry_produce(producer, topic, key, value, retries=3):
     for i in range(retries):
@@ -60,7 +60,9 @@ def run():
         )
 
     producer.flush()
-    update_last_ts(max(r["last_updated"] for r in rows))
+
+    max_ts = max(r["last_updated"] for r in rows)
+    update_last_ts(max_ts.strftime("%Y-%m-%d %H:%M:%S"))
 
 if __name__ == "__main__":
     run()
