@@ -1,6 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, from_json
 from pyspark.sql.types import *
+from pyspark.sql.avro.functions import from_avro
 
 from transform import transform_df
 
@@ -22,9 +23,9 @@ df = spark.readStream \
     .option("subscribe", "product_updates") \
     .load()
 
-parsed = df.selectExpr("CAST(value AS STRING)") \
-    .select(from_json(col("value"), schema).alias("data")) \
-    .select("data.*")
+parsed = df.select(
+        from_avro(col("value"), schema_json).alias("data")
+    ).select("data.*")
 
 transformed = transform_df(parsed)
 
