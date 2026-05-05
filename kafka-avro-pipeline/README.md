@@ -1,58 +1,79 @@
-# Kafka Avro Streaming Pipeline
+# Real-Time Data Engineering Pipeline (Kafka + Spark + S3)
 
 ## Overview
-This project implements a real-time data pipeline using Kafka, Avro, MySQL, and a consumer group architecture.
+This project implements a production-style real-time data pipeline using Kafka, Avro, Spark Structured Streaming, and a data lake (S3/ADLS).
 
-## Architecture
-MySQL → Kafka (Avro + Schema Registry) → Consumer Group → JSON Sink
+It demonstrates how to build a scalable, fault-tolerant, and near exactly-once streaming system.
 
-## Key Features
-- Incremental ingestion using timestamp checkpointing
-- Avro serialization with schema registry
-- Kafka topic with 10 partitions
-- Consumer group parallelism
+---
+
+## 🏗 Architecture
+
+MySQL → Kafka (Avro + Schema Registry) → Spark Structured Streaming → S3 (Parquet)
+
+### Components:
+- **Source**: MySQL (incremental ingestion)
+- **Streaming Layer**: Apache Kafka (10 partitions)
+- **Serialization**: Avro + Schema Registry
+- **Processing Engine**: Spark Structured Streaming
+- **Sink**: S3 Data Lake (Parquet format)
+- **Orchestration**: Airflow
+- **Monitoring**: Prometheus
+- **Failure Handling**: Dead Letter Queue (DLQ)
+
+---
+
+## ⚙️ Key Features
+
+### Data Ingestion
+- Incremental extraction using timestamp checkpointing
+- Transactional Kafka producer (idempotent + exactly-once within Kafka)
+
+### Streaming & Processing
+- Spark Structured Streaming for scalable processing
+- Schema-based deserialization (Avro)
+- Transformation layer:
+  - category → lowercase
+  - discount logic for Category A
+
+### Storage
+- Partitioned Parquet files in S3 (data lake design)
+- Checkpointing for fault tolerance
+
+### Reliability
 - Retry mechanism in producer
-- Dead Letter Queue (DLQ) for failure handling
-- Data transformation layer
+- Dead Letter Queue (DLQ) for failed records
+- Effectively-once processing guarantee (no duplicates)
+
+### Orchestration & Monitoring
+- Airflow DAG for scheduling
+- Prometheus metrics for observability
+
+---
 
 ## Data Flow
-1. Producer fetches incremental data from MySQL
-2. Serializes using Avro
-3. Publishes to Kafka topic `product_updates`
-4. Consumers read messages in parallel
-5. Apply transformation logic:
-   - category → lowercase
-   - discount for category A
-6. Write output to JSON files
-7. Failures go to `product_dlq`
+
+1. Producer reads incremental data from MySQL
+2. Serializes data using Avro schema
+3. Publishes messages to Kafka topic `product_updates`
+4. Spark consumes Kafka stream
+5. Applies transformations
+6. Writes output to S3 in Parquet format
+7. Failed records are sent to `product_dlq`
+
+---
 
 ## Topics
-- product_updates (10 partitions)
-- product_dlq (DLQ)
 
-## Run Instructions
+| Topic | Description | Partitions |
+|------|------------|-----------|
+| product_updates | Main data stream | 10 |
+| product_dlq | Failed messages | 3 |
 
-### Start infra
+---
+
+## Setup & Run
+
+### 1. Start Infrastructure
+```bash
 docker-compose up -d
-
-### Create topics
-kafka-topics --create --topic product_updates --partitions 10 --bootstrap-server localhost:9092
-
-### Run producer
-python producer/producer.py
-
-### Run consumers
-python consumer/consumer.py 1
-python consumer/consumer.py 2
-
-## Output
-Stored in:
-data/output/
-
-Each consumer writes to a separate file.
-
-## Improvements Possible
-- Add Airflow orchestration
-- Add monitoring (Prometheus)
-- Add cloud deployment (AWS/GCP)
-- Exactly-once processing
