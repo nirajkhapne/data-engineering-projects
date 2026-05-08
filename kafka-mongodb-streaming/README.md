@@ -41,5 +41,32 @@ FastAPI is used to expose analytics APIs on top of MongoDB.
 - Data Validation
 - Distributed Consumer Design
 
+### GPS Provider Aggregation
 ```bash
-GET /vehicle/{vehicle_no}
+GET /gps-provider-count
+```
+
+## Run Steps
+
+### 1. Start Infrastructure
+```bash
+docker-compose up -d
+```
+
+### 2. Run Producer
+```bash
+python producer/producer.py
+```
+
+### 3. Run Consumer
+```bash
+python consumer/consumer.py
+```
+
+### 4. Run API
+```bash
+uvicorn api.main:app --reload
+```
+
+## Designed and implemented a real-time streaming pipeline
+
