@@ -32,14 +32,14 @@ FastAPI is used to expose analytics APIs on top of MongoDB.
 
 
 ## Skills Demonstrated
-Kafka Streaming
-MongoDB Integration
-Avro + Schema Registry
-FastAPI
-Docker
-Fault Tolerant Streaming
-Data Validation
-Distributed Consumer Design
+- Kafka Streaming
+- MongoDB Integration
+- Avro + Schema Registry
+- FastAPI
+- Docker
+- Fault Tolerant Streaming
+- Data Validation
+- Distributed Consumer Design
 
 ```bash
 GET /vehicle/{vehicle_no}
