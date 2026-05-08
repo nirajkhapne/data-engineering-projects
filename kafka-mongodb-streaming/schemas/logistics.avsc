@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "LogisticsEvent",
+  "namespace": "com.logistics",
+  "fields": [
+    {"name": "BookingID", "type": "string"},
+    {"name": "GpsProvider", "type": ["null", "string"], "default": null},
+    {"name": "vehicle_no", "type": ["null", "string"], "default": null},
+    {"name": "Origin_Location", "type": ["null", "string"], "default": null},
+    {"name": "Destination_Location", "type": ["null", "string"], "default": null},
+    {"name": "Current_Location", "type": ["null", "string"], "default": null},
+    {"name": "Material_Shipped", "type": ["null", "string"], "default": null},
+    {"name": "Driver_Name", "type": ["null", "string"], "default": null},
+    {"name": "Driver_MobileNo", "type": ["null", "string"], "default": null}
+  ]
+}
