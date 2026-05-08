@@ -1,0 +1,7 @@
+confluent-kafka
+pandas
+fastapi
+uvicorn
+pymongo
+python-dotenv
+prometheus-client
