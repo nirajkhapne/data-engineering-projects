@@ -1,15 +1,8 @@
 from fastapi import APIRouter
-from pymongo import MongoClient
 
-from configs.settings import settings
+from mongodb.mongo_client import collection
 
 router = APIRouter()
-
-client = MongoClient(settings.MONGO_URI)
-
-collection = client[
-    settings.MONGO_DB
-][settings.MONGO_COLLECTION]
 
 
 @router.get("/orders/{order_id}")
