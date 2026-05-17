@@ -1,10 +1,6 @@
-from pymongo import MongoClient
-from configs.settings import settings
+from mongodb.mongo_client import collection
 
-client = MongoClient(settings.MONGO_URI)
-
-collection = client[
-    settings.MONGO_DB
-][settings.MONGO_COLLECTION]
-
-collection.create_index("order_id", unique=True)
+collection.create_index(
+    "order_id",
+    unique=True
+)
