@@ -1,103 +1,167 @@
 # 👋 Hi, I'm Niraj
 
-### Data Analyst/Engineer | Kafka | Hive | PySpark | ETL |
+### Data Engineer | Streaming & Batch Data Pipelines | Kafka | Spark | Hive
 
 ---
 
-## 🚀 About Me
+# 🚀 About Me
 
-Data Engineer with ~3.5 years of experience building **scalable data pipelines across batch and streaming systems**.
+Data Engineer with ~3.5 years of experience building scalable data pipelines across batch and streaming systems.
 
-I work on designing **reliable, fault-tolerant data architectures**, with hands-on experience in:
+I work on designing reliable, fault-tolerant data architectures with hands-on experience in:
 
-* Real-time streaming (Kafka)
-* Batch processing (Hive)
+- Real-time streaming systems
+- Batch processing workflows
+- Distributed data processing
+- ETL pipeline development
 
 Currently focused on strengthening:
 
-* Distributed data systems
-* Streaming + batch integration
-* Data platform design
+- Distributed streaming systems
+- Stateful stream processing
+- Data platform architecture
+- Streaming + batch integration
 
 ---
 
-## 🛠️ Tech Stack
+# 🛠️ Tech Stack
 
-**Languages & Processing**
+## Languages & Processing
 
-* Python, SQL
-* Hive (HQL), PySpark (learning)
-
-**Data Engineering**
-
-* Kafka (Confluent Cloud)
-* Avro, Schema Registry
-* ETL Pipelines (Batch + Streaming)
-
-**Databases**
-
-* MySQL
-* MongoDB
-* Hive (Data Warehouse)
-
-**Tools**
-
-* Git, Linux
-* Docker (learning)
+- Python
+- SQL
+- PySpark
+- Spark Structured Streaming
+- Hive (HQL)
 
 ---
 
-## 🔥 Highlight Projects
+## Data Engineering
 
-### 📌 Real-Time Kafka Data Pipeline
-
-* Built a production-style streaming pipeline using Kafka, Avro, and MongoDB
-* Implemented **Kafka transactions (exactly-once at producer level)**
-* Designed **DLQ for failure handling**
-* Achieved **effectively-once processing using idempotent sink**
-* Implemented **batch consumption, retry logic, and backpressure handling**
-
-👉 [View Project](https://github.com/nirajkhapne/data-engineering-projects/tree/main/Confluent%20kafka%20-%20Retail%20data)
+- Apache Kafka
+- Spark Structured Streaming
+- ETL Pipelines
+- Batch + Streaming Architectures
+- Stateful Stream Processing
+- Windowed Aggregations
 
 ---
 
-### 📌 Hive Telecom Data Processing Pipeline
+## Databases
 
-* Processed telecom datasets using **Hive on distributed architecture**
-* Designed **optimized queries using joins, aggregations, and filtering**
-* Applied **partitioning strategies to improve query performance**
-* Built analytical queries for telecom KPIs and insights
-* Worked with large-scale batch data processing concepts
+- MongoDB
+- MySQL
+- Hive
+
+---
+
+## Tools & Platforms
+
+- Git
+- Linux
+- Docker
+- FastAPI
+
+---
+
+# 🔥 Highlight Projects
+
+## 📌 Real-Time Streaming Analytics Platform
+
+Designed and implemented a production-oriented streaming analytics platform using Kafka, Spark Structured Streaming, MongoDB, and FastAPI.
+
+### Key Features
+
+- Stateless stream processing
+- Stateful global aggregations
+- Windowed aggregations with watermarking
+- Stateful stream joins
+- Event-time processing
+- MongoDB integration
+- FastAPI analytics APIs
+- Fault-tolerant streaming workflows
+
+### Tech Used
+
+`Kafka` `PySpark` `Spark Structured Streaming` `MongoDB` `FastAPI` `Docker`
+
+👉 [View Project](https://github.com/nirajkhapne/data-engineering-projects/tree/main/streaming-analytics-platform)
+
+---
+
+## 📌 Kafka + MongoDB Streaming Pipeline
+
+Built a real-time event-driven pipeline using Kafka, MongoDB, FastAPI, and Docker.
+
+### Key Features
+
+- Kafka producer-consumer architecture
+- Real-time data ingestion
+- MongoDB sink integration
+- Validation layer
+- Modular pipeline design
+- REST APIs for querying streaming data
+
+### Tech Used
+
+`Kafka` `MongoDB` `FastAPI` `Python` `Docker`
+
+👉 [View Project](https://github.com/nirajkhapne/data-engineering-projects/tree/main/kafka-mongodb-streaming)
+
+---
+
+## 📌 Hive Telecom Data Processing Pipeline
+
+Processed telecom datasets using Hive on distributed architecture.
+
+### Key Features
+
+- Optimized Hive queries
+- Joins and aggregations
+- Partitioning strategies
+- Telecom KPI analytics
+- Batch data processing workflows
+
+### Tech Used
+
+`Hive` `HQL` `SQL`
 
 👉 [View Project](https://github.com/nirajkhapne/data-engineering-projects/tree/main/Hive%20-%20Telecom%20Project)
 
 ---
 
-## 📊 What I Care About
+# 📊 What I Care About
 
-* Data correctness over shortcuts
-* Designing for failure scenarios
-* Performance optimization in batch & streaming systems
-* Building maintainable and scalable pipelines
-
----
-
-## 📈 Currently Working On
-
-* Kafka advanced concepts (transactions, scaling, internals)
-* Spark Structured Streaming
-* End-to-end data platform design
+- Data correctness over shortcuts
+- Designing for failure scenarios
+- Streaming reliability
+- Performance optimization
+- Maintainable data systems
+- Scalable distributed architectures
 
 ---
 
-## 📫 Connect With Me
+# 📈 Currently Working On
 
-* LinkedIn: https://www.linkedin.com/in/niraj-khapne/
-* Email: nirajrkhapne@gmail.com
+- Kafka internals and scaling
+- Spark Structured Streaming
+- Event-driven architectures
+- Stateful stream processing
+- End-to-end streaming platform design
 
 ---
 
-## ⚡ Engineering Thought
+# 📫 Connect With Me
 
-Good data systems don’t fail loudly — they fail silently.
-Designing for that is the real challenge.
+- LinkedIn:  
+  https://www.linkedin.com/in/niraj-khapne/
+
+- Email:  
+  nirajrkhapne@gmail.com
+
+---
+
+# ⚡ Engineering Thought
+
+> Good data systems don’t fail loudly — they fail silently.  
+> Designing for that is the real challenge.
