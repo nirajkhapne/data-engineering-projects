@@ -91,7 +91,7 @@ The objective of this project is to simulate how modern event-driven data engine
 | API Layer | FastAPI |
 | Containerization | Docker |
 | Language | Python |
-| Monitoring | Prometheus (basic setup) |
+| Monitoring | Prometheus |
 
 ---
 
@@ -101,10 +101,10 @@ The objective of this project is to simulate how modern event-driven data engine
 
 Processes independent events without maintaining historical state.
 
-Example:
+### Example:
 - Filter users where `age > 25`
 
-Implemented in:
+### Implemented in:
 ```bash
 streaming/stateless_stream.py
 ```
@@ -115,10 +115,10 @@ streaming/stateless_stream.py
 
 Maintains continuously updated aggregates across the entire stream.
 
-Example:
+### Example:
 - Running total transaction amount per user
 
-Implemented in:
+### Implemented in:
 ```bash
 streaming/stateful_global_stream.py
 ```
@@ -129,15 +129,15 @@ streaming/stateful_global_stream.py
 
 Performs aggregations over event-time windows.
 
-Features:
+### Features:
 - Event-time processing
 - Watermarking
 - Late event handling
 
-Example:
+### Example:
 - Total transaction amount every 3 minutes
 
-Implemented in:
+### Implemented in:
 ```bash
 streaming/stateful_window_stream.py
 ```
@@ -148,10 +148,10 @@ streaming/stateful_window_stream.py
 
 Joins asynchronous event streams using a common key.
 
-Example:
+### Example:
 - Joining orders and payments streams on `order_id`
 
-Implemented in:
+### Implemented in:
 ```bash
 streaming/order_payment_join.py
 ```
@@ -170,7 +170,6 @@ streaming/order_payment_join.py
 - Modular project structure
 - Dockerized infrastructure
 - Config-driven architecture
-- Idempotent MongoDB writes
 
 ---
 
@@ -218,7 +217,7 @@ streaming-analytics-platform/
 │
 ├── data/
 │   ├── user_data.json
-│   ├── transactions.json
+│   ├── user_transactions.json
 │
 └── checkpoints/
 ```
@@ -243,11 +242,13 @@ python -m venv venv
 ```
 
 ### Windows
+
 ```bash
 venv\\Scripts\\activate
 ```
 
 ### Linux / Mac
+
 ```bash
 source venv/bin/activate
 ```
@@ -269,11 +270,9 @@ Create `.env` file using `.env.example`
 ```env
 KAFKA_BOOTSTRAP=localhost:9092
 
-SCHEMA_REGISTRY_URL=http://localhost:8081
-
 MONGO_URI=mongodb://localhost:27017
 
-MONGO_DB=ecommerce_db
+MONGO_DB=streaming_db
 
 MONGO_COLLECTION=orders_fact
 ```
@@ -281,6 +280,8 @@ MONGO_COLLECTION=orders_fact
 ---
 
 # Running the Project
+
+---
 
 ## Step 1: Start Infrastructure
 
@@ -290,19 +291,55 @@ docker-compose up -d
 
 ---
 
-## Step 2: Start Kafka Producers
+## Step 2: Create Kafka Topics
+
+```bash
+kafka-topics --create \
+--topic user_topic \
+--bootstrap-server localhost:9092
+```
+
+```bash
+kafka-topics --create \
+--topic transactions_topic \
+--bootstrap-server localhost:9092
+```
+
+```bash
+kafka-topics --create \
+--topic orders_topic \
+--bootstrap-server localhost:9092
+```
+
+```bash
+kafka-topics --create \
+--topic payments_topic \
+--bootstrap-server localhost:9092
+```
+
+---
+
+## Step 3: Start Kafka Producers
+
+### User Producer
 
 ```bash
 python producers/user_producer.py
 ```
 
+### Transaction Producer
+
 ```bash
 python producers/transaction_producer.py
 ```
 
+### Orders Producer
+
 ```bash
 python producers/orders_producer.py
 ```
+
+### Payments Producer
 
 ```bash
 python producers/payments_producer.py
@@ -310,9 +347,9 @@ python producers/payments_producer.py
 
 ---
 
-## Step 3: Start Streaming Jobs
+## Step 4: Start Streaming Jobs
 
-### Stateless Processing
+### Stateless Stream
 
 ```bash
 spark-submit streaming/stateless_stream.py
@@ -324,7 +361,7 @@ spark-submit streaming/stateless_stream.py
 spark-submit streaming/stateful_global_stream.py
 ```
 
-### Windowed Aggregation
+### Stateful Windowed Aggregation
 
 ```bash
 spark-submit streaming/stateful_window_stream.py
@@ -338,7 +375,15 @@ spark-submit streaming/order_payment_join.py
 
 ---
 
-## Step 4: Start FastAPI Server
+## Step 5: Create MongoDB Index
+
+```bash
+python mongodb/indexes.py
+```
+
+---
+
+## Step 6: Start FastAPI Server
 
 ```bash
 uvicorn api.main:app --reload
@@ -348,42 +393,78 @@ uvicorn api.main:app --reload
 
 # API Examples
 
-## Fetch Order by Order ID
+## Fetch Order By Order ID
+
+### Endpoint
 
 ```bash
 GET /orders/{order_id}
 ```
 
-Example:
+### Example
+
 ```bash
-GET /orders/ORD_1001
+GET /orders/order_1
 ```
 
 ---
 
 # Sample Streaming Output
 
-## Stateless Stream
+## Stateless Stream Output
 
 ```text
-+-------+-----+
-|user_id| age |
-+-------+-----+
-|U101   | 28  |
-|U102   | 34  |
-+-------+-----+
++---+-------+---+
+|id |name   |age|
++---+-------+---+
+|1  |John   |30 |
+|3  |Doe    |35 |
+|4  |Alice  |40 |
+|6  |Charlie|50 |
++---+-------+---+
 ```
 
 ---
 
-## Windowed Aggregation
+## Stateful Global Aggregation Output
+
+```text
++-------+-------------+
+|user_id|total_amount |
++-------+-------------+
+|user1  |300          |
+|user2  |300          |
+|user3  |400          |
++-------+-------------+
+```
+
+---
+
+## Windowed Aggregation Output
 
 ```text
 +------------------------------------------+--------+-------------+
 |window                                    |user_id|total_amount |
 +------------------------------------------+--------+-------------+
-|{2025-08-08 10:00, 2025-08-08 10:03}     |U101   |4500         |
+|{2025-07-30 10:00, 2025-07-30 10:03}     |user1  |300          |
 +------------------------------------------+--------+-------------+
+```
+
+---
+
+# MongoDB Output Example
+
+```json
+{
+  "order_id": "order_1",
+  "order_date": "2025-07-30 10:00:00",
+  "created_at": "2025-07-30 10:00:00",
+  "customer_id": "customer_5",
+  "order_amount": 750,
+  "payment_id": "4f2d3f2a",
+  "payment_date": "2025-07-30 10:00:05",
+  "payment_amount": 750
+}
 ```
 
 ---
@@ -395,11 +476,11 @@ This project includes several production-oriented reliability mechanisms:
 - Spark checkpointing
 - Event-time watermarking
 - Stateful recovery
-- Idempotent MongoDB writes
 - Distributed Kafka ingestion
 - Structured streaming fault tolerance
 
 Checkpoint locations:
+
 ```bash
 checkpoints/
 ```
@@ -436,4 +517,7 @@ Possible production-grade enhancements:
 - Kubernetes deployment
 - CI/CD pipelines
 
----
+
+- operational streaming concepts
+
+It is intended as a strong portfolio project for data engineering transition roles involving Kafka and Spark-based streaming systems.
