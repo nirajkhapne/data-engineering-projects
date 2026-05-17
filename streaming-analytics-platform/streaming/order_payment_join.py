@@ -1,51 +1,124 @@
+import pandas as pd
+
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col
+from pyspark.sql.functions import from_json, col, lit
+
+from pyspark.sql.streaming.state import GroupStateTimeout
 
 from schemas.order_schema import order_schema, payment_schema
-from configs.settings import settings
 
 spark = SparkSession.builder \
     .appName("OrderPaymentJoin") \
     .config(
         "spark.jars.packages",
+        "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1,"
         "org.mongodb.spark:mongo-spark-connector_2.12:10.5.0"
     ) \
     .getOrCreate()
 
 orders = spark.readStream \
     .format("kafka") \
-    .option("kafka.bootstrap.servers", settings.KAFKA_BOOTSTRAP) \
+    .option("kafka.bootstrap.servers", "localhost:9092") \
     .option("subscribe", "orders_topic") \
     .load()
 
 payments = spark.readStream \
     .format("kafka") \
-    .option("kafka.bootstrap.servers", settings.KAFKA_BOOTSTRAP) \
+    .option("kafka.bootstrap.servers", "localhost:9092") \
     .option("subscribe", "payments_topic") \
     .load()
 
 orders_df = orders.selectExpr("CAST(value AS STRING)") \
     .select(from_json(col("value"), order_schema).alias("data")) \
     .select("data.*") \
-    .withWatermark("created_at", "10 minutes")
+    .withColumn("type", lit("order"))
 
 payments_df = payments.selectExpr("CAST(value AS STRING)") \
     .select(from_json(col("value"), payment_schema).alias("data")) \
     .select("data.*") \
-    .withWatermark("created_at", "10 minutes")
+    .withColumn("type", lit("payment"))
 
-joined = orders_df.join(
+combined = orders_df.unionByName(
     payments_df,
-    "order_id"
+    allowMissingColumns=True
 )
 
-query = joined.writeStream \
+def process_stateful(key, pdfs, state):
+
+    (order_id,) = key
+
+    if state.exists:
+        stored = state.get
+    else:
+        stored = None
+
+    output = []
+
+    for pdf in pdfs:
+
+        for _, row in pdf.iterrows():
+
+            if row["type"] == "order":
+
+                state.update((
+                    row["order_date"],
+                    row["created_at"],
+                    row["customer_id"],
+                    row["amount"]
+                ))
+
+            elif row["type"] == "payment":
+
+                if state.exists:
+
+                    order_date, created_at, customer_id, order_amount = state.get
+
+                    output.append({
+                        "order_id": order_id,
+                        "order_date": order_date,
+                        "created_at": created_at,
+                        "customer_id": customer_id,
+                        "order_amount": order_amount,
+                        "payment_id": row["payment_id"],
+                        "payment_date": row["payment_date"],
+                        "payment_amount": row["amount"]
+                    })
+
+                    state.remove()
+
+    return iter([pd.DataFrame(output)])
+
+stateful_query = combined.groupBy("order_id").applyInPandasWithState(
+    func=process_stateful,
+    outputStructType="""
+        order_id STRING,
+        order_date STRING,
+        created_at STRING,
+        customer_id STRING,
+        order_amount INT,
+        payment_id STRING,
+        payment_date STRING,
+        payment_amount INT
+    """,
+    stateStructType="""
+        order_date STRING,
+        created_at STRING,
+        customer_id STRING,
+        amount INT
+    """,
+    outputMode="append",
+    timeoutConf=GroupStateTimeout.ProcessingTimeTimeout
+)
+
+query = stateful_query.writeStream \
     .format("mongodb") \
-    .option("spark.mongodb.connection.uri", settings.MONGO_URI) \
-    .option("spark.mongodb.database", settings.MONGO_DB) \
-    .option("spark.mongodb.collection", settings.MONGO_COLLECTION) \
+    .option(
+        "spark.mongodb.connection.uri",
+        "mongodb://localhost:27017"
+    ) \
+    .option("spark.mongodb.database", "streaming_db") \
+    .option("spark.mongodb.collection", "orders_fact") \
     .option("checkpointLocation", "checkpoints/join") \
-    .outputMode("append") \
     .start()
 
 query.awaitTermination()
