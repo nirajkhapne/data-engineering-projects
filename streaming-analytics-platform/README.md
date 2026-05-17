@@ -218,8 +218,6 @@ streaming-analytics-platform/
 ├── data/
 │   ├── user_data.json
 │   ├── user_transactions.json
-│
-└── checkpoints/
 ```
 
 ---
