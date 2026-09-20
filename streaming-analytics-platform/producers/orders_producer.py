@@ -1,28 +1,40 @@
-from kafka import KafkaProducer
-import json
 import random
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
-producer = KafkaProducer(
-    bootstrap_servers='localhost:9092',
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-)
+from configs.settings import settings
+from utils.kafka import create_producer
+from utils.logging import get_logger
 
-for i in range(1, 6):
+logger = get_logger(__name__)
 
-    order = {
-        "order_id": f"order_{i}",
-        "order_date": str(datetime.now()),
-        "created_at": str(datetime.now()),
-        "customer_id": f"customer_{random.randint(1,10)}",
-        "amount": random.randint(100, 1000)
+
+def build_order(order_number: int) -> dict:
+    timestamp = datetime.now(timezone.utc).isoformat()
+    return {
+        "order_id": f"order_{order_number}",
+        "order_date": timestamp,
+        "created_at": timestamp,
+        "customer_id": f"customer_{random.randint(1, 10)}",
+        "amount": random.randint(100, 1000),
     }
 
-    producer.send("orders_topic", value=order)
 
-    print("Published:", order)
+def main() -> None:
+    producer = create_producer()
+    try:
+        for order_number in range(1, 6):
+            order = build_order(order_number)
+            producer.send(settings.order_topic, value=order).get(timeout=10)
+            logger.info("Published order: %s", order)
+            time.sleep(5)
+        producer.flush()
+    except Exception:
+        logger.exception("Order producer failed")
+        raise
+    finally:
+        producer.close()
 
-    time.sleep(5)
 
-producer.flush()
+if __name__ == "__main__":
+    main()
