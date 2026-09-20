@@ -1,29 +1,41 @@
-from kafka import KafkaProducer
-import json
 import random
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
-producer = KafkaProducer(
-    bootstrap_servers='localhost:9092',
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-)
+from configs.settings import settings
+from utils.kafka import create_producer
+from utils.logging import get_logger
 
-for i in range(1, 6):
+logger = get_logger(__name__)
 
-    payment = {
+
+def build_payment(order_number: int) -> dict:
+    timestamp = datetime.now(timezone.utc).isoformat()
+    return {
         "payment_id": str(uuid.uuid4()),
-        "order_id": f"order_{i}",
-        "payment_date": str(datetime.now()),
-        "created_at": str(datetime.now()),
-        "amount": random.randint(100, 1000)
+        "order_id": f"order_{order_number}",
+        "payment_date": timestamp,
+        "created_at": timestamp,
+        "amount": random.randint(100, 1000),
     }
 
-    producer.send("payments_topic", value=payment)
 
-    print("Published:", payment)
+def main() -> None:
+    producer = create_producer()
+    try:
+        for order_number in range(1, 6):
+            payment = build_payment(order_number)
+            producer.send(settings.payment_topic, value=payment).get(timeout=10)
+            logger.info("Published payment: %s", payment)
+            time.sleep(7)
+        producer.flush()
+    except Exception:
+        logger.exception("Payment producer failed")
+        raise
+    finally:
+        producer.close()
 
-    time.sleep(7)
 
-producer.flush()
+if __name__ == "__main__":
+    main()
