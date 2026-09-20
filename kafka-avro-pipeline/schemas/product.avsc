@@ -1,0 +1,18 @@
+{
+  "type": "record",
+  "name": "product",
+  "namespace": "pipeline",
+  "fields": [
+    {"name": "ID", "type": "int"},
+    {"name": "name", "type": "string"},
+    {"name": "category", "type": "string"},
+    {"name": "price", "type": "float"},
+    {
+      "name": "last_updated",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    }
+  ]
+}
