@@ -1,7 +1,24 @@
 from pymongo import MongoClient
+from pymongo.collection import Collection
 
-client = MongoClient("mongodb://localhost:27017")
+from configs.settings import settings
+from utils.logging import get_logger
 
-db = client["streaming_db"]
+logger = get_logger(__name__)
 
-collection = db["orders_fact"]
+_client = MongoClient(settings.mongo_uri, serverSelectionTimeoutMS=5000)
+db = _client[settings.mongo_db]
+collection = db[settings.mongo_collection]
+
+
+def ping() -> None:
+    """Fail fast when MongoDB is unavailable."""
+    _client.admin.command("ping")
+
+
+def get_collection() -> Collection:
+    return collection
+
+
+def close() -> None:
+    _client.close()
