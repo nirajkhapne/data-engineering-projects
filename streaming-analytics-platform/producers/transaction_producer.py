@@ -1,22 +1,12 @@
-from kafka import KafkaProducer
-import json
-import time
+from configs.settings import PROJECT_ROOT, settings
+from utils.kafka import load_json_records, publish_records
 
-producer = KafkaProducer(
-    bootstrap_servers='localhost:9092',
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-)
 
-with open("data/user_transactions.json") as f:
+def main() -> None:
+    input_path = PROJECT_ROOT / "data" / "user_transactions.json"
+    records = load_json_records(input_path)
+    publish_records(settings.transaction_topic, records)
 
-    data = json.load(f)
 
-    for record in data:
-
-        producer.send("transactions_topic", value=record)
-
-        print("Published:", record)
-
-        time.sleep(2)
-
-producer.flush()
+if __name__ == "__main__":
+    main()
