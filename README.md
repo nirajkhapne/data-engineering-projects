@@ -1,154 +1,221 @@
-# Incremental MySQL → Kafka (Avro) → Spark → Data Lake Pipeline
+# 👋 Hi, I'm Niraj
 
-## Overview
+### Data Analytics Engineer | Data Engineering | Python | SQL | PySpark | AWS | Spark | Kafka
 
-This project demonstrates a modular batch-to-stream Data Engineering pipeline:
+---
 
-```text
-MySQL
-  ↓ incremental extraction
-Python producer
-  ↓ Avro + Schema Registry
-Kafka
-  ↓ Structured Streaming
-Spark
-  ↓ transformation
-Parquet data lake
-```
+# 🚀 About Me
 
-The project focuses on reliable incremental ingestion, schema management, Kafka delivery semantics, streaming transformations, checkpoint recovery, and reproducible local infrastructure.
+Data Analytics Engineer with **3.8+ years of experience** building production data pipelines and analytical data platforms across batch processing and distributed data ecosystems.
 
-> **Guarantee note:** Kafka producer transactions provide transactional/idempotent delivery within Kafka. The complete MySQL → Kafka → Spark → Parquet pipeline is not claimed as end-to-end exactly-once because the source checkpoint and downstream object-store commit are separate systems.
+My professional work focuses on:
 
-## Project structure
+- Multi-source ETL/ELT pipelines
+- Complex SQL-based data transformations
+- Amazon Redshift data platforms and data marts
+- Batch processing and incremental data pipelines
+- Data quality, deduplication and pipeline reliability
+- Business-rule processing, ranking and allocation workflows
 
-```text
-configs/settings.py        Centralized environment-driven configuration
-producer/db.py             Incremental MySQL extraction
-producer/checkpoint.py     Atomic source checkpoint persistence
-producer/producer.py       Avro serialization + transactional Kafka publishing
-schemas/product.avsc       Avro data contract
-spark/stream.py            Kafka → Avro → Spark streaming pipeline
-spark/transform.py         Business transformations
-monitoring/metrics.py      Prometheus counters
-dags/pipeline_dag.py       Hourly source-ingestion orchestration
-scripts/validate_project.py Static project validation
-mysql/init/                Reproducible local MySQL source
-```
+Alongside professional experience, I build hands-on Data Engineering systems using **Kafka, Spark Structured Streaming, Hive, HDFS, MongoDB and FastAPI**, with a focus on stateful processing, event-time semantics, fault tolerance and scalable data architectures.
 
-## Incremental ingestion design
+---
 
-The producer does not use only `last_updated` as its checkpoint. It tracks:
+# 🛠️ Tech Stack
 
-```text
-(last_updated, ID)
-```
+## Languages & Processing
 
-The query uses:
+- Python
+- SQL
+- PySpark
+- Apache Spark
+- Spark Structured Streaming
+- Hive / HQL
 
-```sql
-WHERE (last_updated > :last_updated)
-   OR (last_updated = :last_updated AND ID > :last_id)
-ORDER BY last_updated, ID
-```
+---
 
-This prevents records from being skipped when several rows share the same timestamp.
+## AWS & Data Platforms
 
-The checkpoint is updated **only after the Kafka transaction commits successfully**. This means a failed Kafka transaction does not advance the source position. If the process crashes after Kafka commit but before the local checkpoint is persisted, the source batch can be replayed; Kafka idempotence does not deduplicate an application-level resend across separate transactions. The project therefore does **not** claim end-to-end exactly-once semantics.
+- Amazon Redshift
+- AWS Glue
+- Amazon S3
+- Amazon Athena
+- Databricks
 
-## Kafka reliability
+---
 
-The producer uses:
+## Data Engineering
 
-- `enable.idempotence=true`
-- `acks=all`
-- `transactional.id`
-- explicit `init_transactions()` / `begin_transaction()` / `commit_transaction()` / `abort_transaction()` lifecycle
+- ETL / ELT
+- Data Pipelines
+- Batch Processing
+- Distributed Data Processing
+- Incremental Processing
+- Data Integration
+- Data Transformation
+- Data Quality & Validation
+- Data Deduplication
+- Data Warehousing
+- Dimensional Modeling
+- Star Schema
+- Partitioning & Bucketing
 
-This gives transactional publishing semantics within Kafka. Consumers that need Kafka EOS semantics must read committed records and participate in the corresponding transaction model.
+---
 
-## Avro and Schema Registry
+## Streaming & Distributed Systems
 
-`schemas/product.avsc` defines the contract for product events. The producer uses Confluent's Avro serializer with Schema Registry, while Spark decodes the Kafka value using the same schema definition.
+- Apache Kafka
+- Spark Structured Streaming
+- Event-Time Processing
+- Watermarking
+- Windowed Aggregations
+- Stateful Stream Processing
+- Stream-Stream Joins
+- Checkpointing & Fault Recovery
+- Event-Driven Architectures
 
-## Spark processing
+---
 
-Spark Structured Streaming performs:
+## Databases & Tools
 
-1. Kafka consumption
-2. Avro deserialization
-3. Business transformations
-4. Parquet append writes
-5. Checkpoint-based query recovery
+- MongoDB
+- MySQL
+- PostgreSQL
+- HDFS
+- Git
+- Linux
+- Docker
+- FastAPI
 
-Current business logic:
+---
 
-- normalize `category` to lowercase
-- apply a 50% price adjustment to `category a`
+# 💼 Professional Data Engineering Experience
 
-## Local development
+### Production Data Pipelines
 
-Copy `.env.example` to `.env` and adjust values if needed.
+- Engineered Redshift-based ETL pipelines integrating event, relational, campaign, user-engagement and historical datasets for business-critical lead generation and downstream delivery systems.
+- Built complex SQL transformations using CTEs, temporary tables, multi-source joins, aggregations and window functions for campaign fulfilment, ranking, eligibility and allocation logic.
+- Implemented deduplication, historical exposure checks, incremental processing, archival/retention controls and data-quality validations for reliable downstream datasets.
 
-Start the infrastructure:
+### Analytical Data Platforms
 
-```bash
-docker compose up -d
-```
+- Developed Spark-based pipelines integrating external SEO and search-performance data into curated Redshift data marts.
+- Built configuration-driven data transformation and ranking workflows for large-scale keyword and SEO analytics use cases.
 
-The local stack provides Kafka, Schema Registry, MySQL and MinIO. The Python producer connects through `localhost:9092`; containers communicate using the internal Kafka listener.
+---
 
-Install Python dependencies:
+# 🔥 Highlight Projects
 
-```bash
-pip install -r requirements.txt
-```
+## 📌 Real-Time Streaming Analytics Platform
 
-Run static validation:
+Built an end-to-end, production-patterned streaming analytics platform using **Kafka, Spark Structured Streaming, MongoDB and FastAPI**.
 
-```bash
-python scripts/validate_project.py
-```
+### Key Features
 
-Run the producer:
+- Modular Kafka ingestion and Spark Structured Streaming pipelines
+- Stateless stream processing
+- Stateful global aggregations
+- Event-time windowed aggregations
+- Watermarking for late-arriving events
+- Stateful order-payment stream correlation using stream-stream joins
+- Checkpoint-based fault recovery
+- Explicit event schemas and malformed-event handling
+- Idempotent MongoDB upserts
+- FastAPI analytics and health endpoints
+- Centralized configuration and logging
+- Dockerized local infrastructure
 
-```bash
-python -m producer.producer
-```
+### Tech Used
 
-Run the Spark stream locally:
+`Kafka` `PySpark` `Spark Structured Streaming` `MongoDB` `FastAPI` `Docker`
 
-```bash
-spark-submit \
-  --packages org.apache.spark:spark-avro_2.12:3.5.6 \
-  spark/stream.py
-```
+👉 [View Project](https://github.com/nirajkhapne/data-engineering-projects/tree/main/streaming-analytics-platform)
 
-For an S3-compatible deployment, configure `OUTPUT_PATH` and the required Hadoop S3A credentials/connectors for the target environment.
+---
 
-## Data simulation
+## 📌 Telecom Customer Churn Data Warehouse
 
-The repository includes:
+Built a layered **Hive data warehouse on HDFS** for telecom customer churn analytics, following production-oriented data engineering patterns.
 
-- `mysql/init/01_create_product.sql` for a reproducible MySQL source
-- `data/mock_product.csv` for lightweight transformation/checkpoint testing
-- `scripts/simulate_pipeline.py` for a dependency-light end-to-end logic simulation
+### Key Features
 
-The sample source contains six records with repeated timestamps specifically to exercise the composite `(last_updated, ID)` checkpoint design.
+- Raw → staging → curated data architecture
+- Incremental snapshot processing
+- Idempotent refreshes and latest-record selection
+- Source-priority handling for incremental data
+- ORC + SNAPPY storage
+- Partitioning and bucketing
+- Star-schema dimensional modeling
+- Fact and dimension tables
+- Automated data-quality checks
+- Run-over-run row-count validation
+- TEXTFILE vs ORC vs Parquet performance benchmarking on a 901K-row workload
 
-## Orchestration
+### Tech Used
 
-The Airflow DAG schedules the **finite incremental producer task**. Spark Structured Streaming is intentionally treated as a long-running service rather than an hourly Airflow task.
+`Hive` `HQL` `HDFS` `Tez` `YARN` `ORC` `Parquet` `SQL`
 
-## Validation scope
+👉 [View Project](https://github.com/nirajkhapne/data-engineering-projects/tree/main/Hive%20-%20Telecom%20Project)
 
-The repository includes dependency-light static checks for:
+---
 
-- required project files
-- Python syntax
-- Avro JSON/schema structure
-- accidental `.env` inclusion
+## 📌 Kafka + MongoDB Streaming Pipeline
 
-Unit tests cover checkpoint persistence and source-row normalization.
+Built an event-driven Kafka-to-MongoDB pipeline with a modular ingestion and serving layer.
 
-A full runtime test requires Kafka, Schema Registry, MySQL and Spark to be running. The Docker Compose file provides the local infrastructure required for that integration test.
+### Key Features
+
+- Kafka producer-consumer architecture
+- Real-time event ingestion
+- MongoDB sink integration
+- Input validation
+- Modular pipeline components
+- REST APIs for querying processed data
+- Dockerized development environment
+
+### Tech Used
+
+`Kafka` `MongoDB` `FastAPI` `Python` `Docker`
+
+👉 [View Project](https://github.com/nirajkhapne/data-engineering-projects/tree/main/kafka-mongodb-streaming)
+
+---
+
+# 🧠 Engineering Focus
+
+- Reliable data pipelines over one-off scripts
+- Data correctness and validation
+- Idempotent and incremental processing
+- Designing for failure and recovery
+- Distributed data processing
+- Streaming reliability and event-time semantics
+- Performance-aware storage and query design
+- Maintainable, modular data systems
+
+---
+
+# 📈 Currently Working On
+
+- Advanced Spark Structured Streaming
+- Kafka internals and scalable event-driven architectures
+- Stateful stream processing
+- Data warehouse and lakehouse architecture
+- Batch + streaming system design
+- Production-oriented Data Engineering patterns
+
+---
+
+# 📫 Connect With Me
+
+- LinkedIn:  
+  https://www.linkedin.com/in/niraj-khapne/
+
+- Email:  
+  nirajrkhapne@gmail.com
+
+---
+
+# ⚡ Engineering Thought
+
+> Good data systems don’t fail loudly — they fail silently.  
+> Designing for that is the real challenge.
