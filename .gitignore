@@ -1,0 +1,11 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+state/*.json
+state/spark_checkpoint/
+data/output/
+logs/
+.idea/
+.vscode/
