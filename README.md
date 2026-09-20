@@ -1,26 +1,23 @@
 # 👋 Hi, I'm Niraj
 
-### Data Engineer | Streaming & Batch Data Pipelines | Kafka | Spark | Hive
+### Data Analytics Engineer | Data Engineering | Python | SQL | PySpark | AWS | Spark | Kafka
 
 ---
 
 # 🚀 About Me
 
-Data Engineer with ~3.5 years of experience building scalable data pipelines across batch and streaming systems.
+Data Analytics Engineer with **3.8+ years of experience** building production data pipelines and analytical data platforms across batch processing and distributed data ecosystems.
 
-I work on designing reliable, fault-tolerant data architectures with hands-on experience in:
+My professional work focuses on:
 
-- Real-time streaming systems
-- Batch processing workflows
-- Distributed data processing
-- ETL pipeline development
+- Multi-source ETL/ELT pipelines
+- Complex SQL-based data transformations
+- Amazon Redshift data platforms and data marts
+- Batch processing and incremental data pipelines
+- Data quality, deduplication and pipeline reliability
+- Business-rule processing, ranking and allocation workflows
 
-Currently focused on strengthening:
-
-- Distributed streaming systems
-- Stateful stream processing
-- Data platform architecture
-- Streaming + batch integration
+Alongside professional experience, I build hands-on Data Engineering systems using **Kafka, Spark Structured Streaming, Hive, HDFS, MongoDB and FastAPI**, with a focus on stateful processing, event-time semantics, fault tolerance and scalable data architectures.
 
 ---
 
@@ -31,32 +28,60 @@ Currently focused on strengthening:
 - Python
 - SQL
 - PySpark
+- Apache Spark
 - Spark Structured Streaming
-- Hive (HQL)
+- Hive / HQL
+
+---
+
+## AWS & Data Platforms
+
+- Amazon Redshift
+- AWS Glue
+- Amazon S3
+- Amazon Athena
+- Databricks
 
 ---
 
 ## Data Engineering
 
-- Apache Kafka
-- Spark Structured Streaming
-- ETL Pipelines
-- Batch + Streaming Architectures
-- Stateful Stream Processing
-- Windowed Aggregations
+- ETL / ELT
+- Data Pipelines
+- Batch Processing
+- Distributed Data Processing
+- Incremental Processing
+- Data Integration
+- Data Transformation
+- Data Quality & Validation
+- Data Deduplication
+- Data Warehousing
+- Dimensional Modeling
+- Star Schema
+- Partitioning & Bucketing
 
 ---
 
-## Databases
+## Streaming & Distributed Systems
+
+- Apache Kafka
+- Spark Structured Streaming
+- Event-Time Processing
+- Watermarking
+- Windowed Aggregations
+- Stateful Stream Processing
+- Stream-Stream Joins
+- Checkpointing & Fault Recovery
+- Event-Driven Architectures
+
+---
+
+## Databases & Tools
 
 - MongoDB
 - MySQL
-- Hive
-
----
-
-## Tools & Platforms
-
+- PostgreSQL
+- HDFS
 - Git
 - Linux
 - Docker
@@ -64,22 +89,41 @@ Currently focused on strengthening:
 
 ---
 
+# 💼 Professional Data Engineering Experience
+
+### Production Data Pipelines
+
+- Engineered Redshift-based ETL pipelines integrating event, relational, campaign, user-engagement and historical datasets for business-critical lead generation and downstream delivery systems.
+- Built complex SQL transformations using CTEs, temporary tables, multi-source joins, aggregations and window functions for campaign fulfilment, ranking, eligibility and allocation logic.
+- Implemented deduplication, historical exposure checks, incremental processing, archival/retention controls and data-quality validations for reliable downstream datasets.
+
+### Analytical Data Platforms
+
+- Developed Spark-based pipelines integrating external SEO and search-performance data into curated Redshift data marts.
+- Built configuration-driven data transformation and ranking workflows for large-scale keyword and SEO analytics use cases.
+
+---
+
 # 🔥 Highlight Projects
 
 ## 📌 Real-Time Streaming Analytics Platform
 
-Designed and implemented a production-oriented streaming analytics platform using Kafka, Spark Structured Streaming, MongoDB, and FastAPI.
+Built an end-to-end, production-patterned streaming analytics platform using **Kafka, Spark Structured Streaming, MongoDB and FastAPI**.
 
 ### Key Features
 
+- Modular Kafka ingestion and Spark Structured Streaming pipelines
 - Stateless stream processing
 - Stateful global aggregations
-- Windowed aggregations with watermarking
-- Stateful stream joins
-- Event-time processing
-- MongoDB integration
-- FastAPI analytics APIs
-- Fault-tolerant streaming workflows
+- Event-time windowed aggregations
+- Watermarking for late-arriving events
+- Stateful order-payment stream correlation using stream-stream joins
+- Checkpoint-based fault recovery
+- Explicit event schemas and malformed-event handling
+- Idempotent MongoDB upserts
+- FastAPI analytics and health endpoints
+- Centralized configuration and logging
+- Dockerized local infrastructure
 
 ### Tech Used
 
@@ -89,18 +133,45 @@ Designed and implemented a production-oriented streaming analytics platform usin
 
 ---
 
+## 📌 Telecom Customer Churn Data Warehouse
+
+Built a layered **Hive data warehouse on HDFS** for telecom customer churn analytics, following production-oriented data engineering patterns.
+
+### Key Features
+
+- Raw → staging → curated data architecture
+- Incremental snapshot processing
+- Idempotent refreshes and latest-record selection
+- Source-priority handling for incremental data
+- ORC + SNAPPY storage
+- Partitioning and bucketing
+- Star-schema dimensional modeling
+- Fact and dimension tables
+- Automated data-quality checks
+- Run-over-run row-count validation
+- TEXTFILE vs ORC vs Parquet performance benchmarking on a 901K-row workload
+
+### Tech Used
+
+`Hive` `HQL` `HDFS` `Tez` `YARN` `ORC` `Parquet` `SQL`
+
+👉 [View Project](https://github.com/nirajkhapne/data-engineering-projects/tree/main/Hive%20-%20Telecom%20Project)
+
+---
+
 ## 📌 Kafka + MongoDB Streaming Pipeline
 
-Built a real-time event-driven pipeline using Kafka, MongoDB, FastAPI, and Docker.
+Built an event-driven Kafka-to-MongoDB pipeline with a modular ingestion and serving layer.
 
 ### Key Features
 
 - Kafka producer-consumer architecture
-- Real-time data ingestion
+- Real-time event ingestion
 - MongoDB sink integration
-- Validation layer
-- Modular pipeline design
-- REST APIs for querying streaming data
+- Input validation
+- Modular pipeline components
+- REST APIs for querying processed data
+- Dockerized development environment
 
 ### Tech Used
 
@@ -110,44 +181,27 @@ Built a real-time event-driven pipeline using Kafka, MongoDB, FastAPI, and Docke
 
 ---
 
-## 📌 Hive Telecom Data Processing Pipeline
+# 🧠 Engineering Focus
 
-Processed telecom datasets using Hive on distributed architecture.
-
-### Key Features
-
-- Optimized Hive queries
-- Joins and aggregations
-- Partitioning strategies
-- Telecom KPI analytics
-- Batch data processing workflows
-
-### Tech Used
-
-`Hive` `HQL` `SQL`
-
-👉 [View Project](https://github.com/nirajkhapne/data-engineering-projects/tree/main/Hive%20-%20Telecom%20Project)
-
----
-
-# 📊 What I Care About
-
-- Data correctness over shortcuts
-- Designing for failure scenarios
-- Streaming reliability
-- Performance optimization
-- Maintainable data systems
-- Scalable distributed architectures
+- Reliable data pipelines over one-off scripts
+- Data correctness and validation
+- Idempotent and incremental processing
+- Designing for failure and recovery
+- Distributed data processing
+- Streaming reliability and event-time semantics
+- Performance-aware storage and query design
+- Maintainable, modular data systems
 
 ---
 
 # 📈 Currently Working On
 
-- Kafka internals and scaling
-- Spark Structured Streaming
-- Event-driven architectures
+- Advanced Spark Structured Streaming
+- Kafka internals and scalable event-driven architectures
 - Stateful stream processing
-- End-to-end streaming platform design
+- Data warehouse and lakehouse architecture
+- Batch + streaming system design
+- Production-oriented Data Engineering patterns
 
 ---
 
