@@ -1,104 +1,82 @@
-import logging
-
-from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql.functions import col, from_json, sum
+from pyspark.sql import DataFrame
+from pyspark.sql.functions import col, from_json, sum as spark_sum
 
 from configs.settings import settings
 from schemas.transaction_schema import schema
+from utils.logging import get_logger
+from utils.spark import create_spark_session
+
+logger = get_logger(__name__)
 
 
-logger = logging.getLogger(__name__)
+class GlobalTransactionAggregation:
+    """Maintain a running transaction total per user."""
 
-
-class StatefulGlobalStream:
-    """Maintain a running transaction total for each user."""
-
-    def __init__(self, spark: SparkSession):
+    def __init__(self, spark):
         self.spark = spark
 
     def read_stream(self) -> DataFrame:
-        """Create the Kafka streaming DataFrame for transaction events."""
         return (
             self.spark.readStream
             .format("kafka")
             .option("kafka.bootstrap.servers", settings.kafka_bootstrap)
-            .option("subscribe", "transactions_topic")
-            .option("failOnDataLoss", "true")
+            .option("subscribe", settings.transaction_topic)
+            .option("startingOffsets", "earliest")
             .load()
         )
 
     def parse_stream(self, df: DataFrame) -> DataFrame:
-        """Parse transaction JSON and drop malformed or incomplete records."""
-        parsed_df = df.selectExpr("CAST(value AS STRING) AS value").select(
+        parsed = df.selectExpr("CAST(value AS STRING) AS value").select(
             from_json(col("value"), schema).alias("data")
         )
-
         return (
-            parsed_df
-            .filter(col("data").isNotNull())
+            parsed.filter(col("data").isNotNull())
             .select("data.*")
             .filter(col("user_id").isNotNull() & col("amount").isNotNull())
         )
 
     def aggregate(self, df: DataFrame) -> DataFrame:
-        """Maintain the running transaction amount for each user."""
-        return (
-            df.groupBy("user_id")
-            .agg(sum("amount").alias("total_amount"))
-        )
+        return df.groupBy("user_id").agg(spark_sum("amount").alias("total_amount"))
 
     def write_stream(self, df: DataFrame):
-        """Write the current aggregate state to the console."""
         return (
             df.writeStream
-            .queryName("stateful-global-transactions")
+            .queryName("global-transaction-aggregation")
             .format("console")
             .outputMode("complete")
-            .option("truncate", "false")
-            .option("checkpointLocation", "checkpoints/global")
+            .option("truncate", False)
+            .option("checkpointLocation", settings.checkpoint_path("global"))
             .start()
         )
 
     def process(self):
-        """Build and start the stateful aggregation pipeline."""
-        raw_df = self.read_stream()
-        parsed_df = self.parse_stream(raw_df)
-        aggregated_df = self.aggregate(parsed_df)
-        return self.write_stream(aggregated_df)
-
-
-def create_spark_session() -> SparkSession:
-    """Create the Spark session used by this streaming job."""
-    return (
-        SparkSession.builder
-        .appName("StatefulGlobalStream")
-        .getOrCreate()
-    )
+        query = None
+        try:
+            query = self.write_stream(self.aggregate(self.parse_stream(self.read_stream())))
+            logger.info("Global transaction aggregation started")
+            return query
+        except Exception:
+            logger.exception("Failed to start global transaction aggregation")
+            if query is not None:
+                query.stop()
+            raise
 
 
 def main() -> None:
-    """Start the aggregation and keep it running until it is stopped."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-    )
-
-    spark = None
-
+    spark = create_spark_session("GlobalTransactionAggregation")
+    query = None
     try:
-        spark = create_spark_session()
-        query = StatefulGlobalStream(spark).process()
-        logger.info("Stateful global transaction stream started.")
+        query = GlobalTransactionAggregation(spark).process()
         query.awaitTermination()
     except KeyboardInterrupt:
-        logger.info("Stopping stateful global transaction stream.")
+        logger.info("Stopping global transaction aggregation")
     except Exception:
-        logger.exception("Stateful global transaction stream failed.")
+        logger.exception("Global transaction aggregation failed")
         raise
     finally:
-        if spark is not None:
-            spark.stop()
-            logger.info("Spark session stopped.")
+        if query is not None and query.isActive:
+            query.stop()
+        spark.stop()
 
 
 if __name__ == "__main__":
