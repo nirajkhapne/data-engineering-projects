@@ -1,124 +1,128 @@
-import pandas as pd
+from pyspark.sql import DataFrame
+from pyspark.sql.functions import col, from_json, lit, expr
 
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col, lit
-
-from pyspark.sql.streaming.state import GroupStateTimeout
-
+from configs.settings import settings
+from mongodb.writer import upsert_order_batch
 from schemas.order_schema import order_schema, payment_schema
+from utils.logging import get_logger
+from utils.spark import create_spark_session
 
-spark = SparkSession.builder \
-    .appName("OrderPaymentJoin") \
-    .config(
-        "spark.jars.packages",
-        "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1,"
-        "org.mongodb.spark:mongo-spark-connector_2.12:10.5.0"
-    ) \
-    .getOrCreate()
+logger = get_logger(__name__)
 
-orders = spark.readStream \
-    .format("kafka") \
-    .option("kafka.bootstrap.servers", "localhost:9092") \
-    .option("subscribe", "orders_topic") \
-    .load()
 
-payments = spark.readStream \
-    .format("kafka") \
-    .option("kafka.bootstrap.servers", "localhost:9092") \
-    .option("subscribe", "payments_topic") \
-    .load()
+class OrderPaymentStreamJoin:
+    """Join order and payment streams by order_id within a bounded event-time interval."""
 
-orders_df = orders.selectExpr("CAST(value AS STRING)") \
-    .select(from_json(col("value"), order_schema).alias("data")) \
-    .select("data.*") \
-    .withColumn("type", lit("order"))
+    WATERMARK_DELAY = "10 minutes"
+    MAX_EVENT_GAP = "10 minutes"
 
-payments_df = payments.selectExpr("CAST(value AS STRING)") \
-    .select(from_json(col("value"), payment_schema).alias("data")) \
-    .select("data.*") \
-    .withColumn("type", lit("payment"))
+    def __init__(self, spark):
+        self.spark = spark
 
-combined = orders_df.unionByName(
-    payments_df,
-    allowMissingColumns=True
-)
+    def read_stream(self, topic: str) -> DataFrame:
+        return (
+            self.spark.readStream
+            .format("kafka")
+            .option("kafka.bootstrap.servers", settings.kafka_bootstrap)
+            .option("subscribe", topic)
+            .option("startingOffsets", "earliest")
+            .load()
+        )
 
-def process_stateful(key, pdfs, state):
+    @staticmethod
+    def parse_stream(df: DataFrame, event_schema: str | object, event_type: str) -> DataFrame:
+        parsed = df.selectExpr("CAST(value AS STRING) AS value").select(
+            from_json(col("value"), event_schema).alias("data")
+        )
+        return (
+            parsed.filter(col("data").isNotNull())
+            .select("data.*")
+            .filter(col("order_id").isNotNull())
+            .withColumn("event_type", lit(event_type))
+        )
 
-    (order_id,) = key
+    def build_join(self, orders: DataFrame, payments: DataFrame) -> DataFrame:
+        orders = orders.withWatermark("created_at_ts", self.WATERMARK_DELAY)
+        payments = payments.withWatermark("created_at_ts", self.WATERMARK_DELAY)
 
-    if state.exists:
-        stored = state.get
-    else:
-        stored = None
+        return (
+            orders.join(
+                payments,
+                (
+                    (orders.order_id == payments.order_id)
+                    & (payments.created_at_ts >= orders.created_at_ts)
+                    & (
+                        payments.created_at_ts
+                        <= orders.created_at_ts + expr(f"INTERVAL {self.MAX_EVENT_GAP}")
+                    )
+                ),
+                "inner",
+            )
+            .select(
+                orders.order_id.alias("order_id"),
+                orders.order_date.alias("order_date"),
+                orders.created_at.alias("created_at"),
+                orders.customer_id.alias("customer_id"),
+                orders.amount.alias("order_amount"),
+                payments.payment_id.alias("payment_id"),
+                payments.payment_date.alias("payment_date"),
+                payments.amount.alias("payment_amount"),
+            )
+        )
 
-    output = []
+    @staticmethod
+    def write_batch(batch_df: DataFrame, batch_id: int) -> None:
+        rows = [row.asDict() for row in batch_df.toLocalIterator()]
+        written = upsert_order_batch(rows)
+        logger.info("Micro-batch %s wrote %s order records to MongoDB", batch_id, written)
 
-    for pdf in pdfs:
+    def process(self):
+        query = None
+        try:
+            orders = self.parse_stream(
+                self.read_stream(settings.order_topic), order_schema, "order"
+            ).withColumn("created_at_ts", col("created_at").cast("timestamp"))
+            payments = self.parse_stream(
+                self.read_stream(settings.payment_topic), payment_schema, "payment"
+            ).withColumn("created_at_ts", col("created_at").cast("timestamp"))
 
-        for _, row in pdf.iterrows():
+            orders = orders.filter(col("created_at_ts").isNotNull())
+            payments = payments.filter(col("created_at_ts").isNotNull())
+            joined = self.build_join(orders, payments)
 
-            if row["type"] == "order":
+            query = (
+                joined.writeStream
+                .queryName("order-payment-stream-join")
+                .outputMode("append")
+                .option("checkpointLocation", settings.checkpoint_path("join"))
+                .foreachBatch(self.write_batch)
+                .start()
+            )
+            logger.info("Order-payment stream join started")
+            return query
+        except Exception:
+            logger.exception("Failed to start order-payment stream join")
+            if query is not None:
+                query.stop()
+            raise
 
-                state.update((
-                    row["order_date"],
-                    row["created_at"],
-                    row["customer_id"],
-                    row["amount"]
-                ))
 
-            elif row["type"] == "payment":
+def main() -> None:
+    spark = create_spark_session("OrderPaymentStreamJoin")
+    query = None
+    try:
+        query = OrderPaymentStreamJoin(spark).process()
+        query.awaitTermination()
+    except KeyboardInterrupt:
+        logger.info("Stopping order-payment stream join")
+    except Exception:
+        logger.exception("Order-payment stream join failed")
+        raise
+    finally:
+        if query is not None and query.isActive:
+            query.stop()
+        spark.stop()
 
-                if state.exists:
 
-                    order_date, created_at, customer_id, order_amount = state.get
-
-                    output.append({
-                        "order_id": order_id,
-                        "order_date": order_date,
-                        "created_at": created_at,
-                        "customer_id": customer_id,
-                        "order_amount": order_amount,
-                        "payment_id": row["payment_id"],
-                        "payment_date": row["payment_date"],
-                        "payment_amount": row["amount"]
-                    })
-
-                    state.remove()
-
-    return iter([pd.DataFrame(output)])
-
-stateful_query = combined.groupBy("order_id").applyInPandasWithState(
-    func=process_stateful,
-    outputStructType="""
-        order_id STRING,
-        order_date STRING,
-        created_at STRING,
-        customer_id STRING,
-        order_amount INT,
-        payment_id STRING,
-        payment_date STRING,
-        payment_amount INT
-    """,
-    stateStructType="""
-        order_date STRING,
-        created_at STRING,
-        customer_id STRING,
-        amount INT
-    """,
-    outputMode="append",
-    timeoutConf=GroupStateTimeout.ProcessingTimeTimeout
-)
-
-query = stateful_query.writeStream \
-    .format("mongodb") \
-    .option(
-        "spark.mongodb.connection.uri",
-        "mongodb://localhost:27017"
-    ) \
-    .option("spark.mongodb.database", "streaming_db") \
-    .option("spark.mongodb.collection", "orders_fact") \
-    .option("checkpointLocation", "checkpoints/join") \
-    .start()
-
-query.awaitTermination()
+if __name__ == "__main__":
+    main()
