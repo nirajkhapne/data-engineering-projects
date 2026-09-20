@@ -86,7 +86,7 @@ streaming-analytics-platform/
 ## Setup
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/nirajkhapne/data-engineering-projects/tree/main/streaming-analytics-platform
 cd streaming-analytics-platform
 python -m venv venv
 ```
