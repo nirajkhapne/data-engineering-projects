@@ -1,0 +1,15 @@
+# Hive / Hadoop runtime artifacts
+logs/
+*.log
+checkpoints/
+tmp/
+
+# Local IDE / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Local data copies
+data/
+*.csv
+*.tsv
