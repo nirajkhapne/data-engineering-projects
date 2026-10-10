@@ -104,7 +104,7 @@ Designing a medallion lakehouse for multi-format e-commerce data, with a focus o
 
 **Status:** Local/static checks and synthetic tests have passed. End-to-end execution in Azure Databricks, including live ADLS/Unity Catalog permissions, Auto Loader recovery, and Lakeflow Jobs execution, remains to be validated.
 
-👉 **[View GizmoBox project](YOUR_GIZMOBOX_REPOSITORY_URL)**
+👉 **[View GizmoBox project](https://github.com/nirajkhapne/data-engineering-projects/tree/main/GizmoBox-Azure-Databricks-Lakehouse)**
 
 ### 📌 Real-Time Streaming Analytics Platform
 
