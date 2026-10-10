@@ -1,0 +1,36 @@
+bundle:
+  name: gizmobox-azure-databricks-lakehouse
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Existing Unity Catalog catalog where project schemas will be created.
+    default: gizmobox
+  landing_root:
+    description: ADLS Gen2 path containing backfill/gizmobox and incoming/customers.
+  checkpoint_root:
+    description: Durable ADLS Gen2 path reserved for Auto Loader schema and checkpoints.
+  node_type_id:
+    description: Azure VM type available in the workspace region.
+    default: Standard_DS3_v2
+
+workspace:
+  # The bundle deploys to a user-scoped workspace directory by default.
+  root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+
+sync:
+  include:
+    - notebooks/**
+    - src/**
+    - resources/**
+    - sql/**
+    - docs/**
+    - README.md
+    - LICENSE
+    - .gitignore
+
+targets:
+  dev:
+    mode: development

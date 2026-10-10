@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local credentials and workspace state
+.env
+.env.*
+!.env.example
+.databrickscfg
+.azure/
+
+# Generated data and execution artifacts
+output/
+checkpoints/
+logs/
+*.log
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

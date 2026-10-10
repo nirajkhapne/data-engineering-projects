@@ -1,0 +1,3 @@
+# Only needed for local validation; Databricks Runtime supplies PySpark/Delta Lake.
+pytest>=8.0,<9.0
+PyYAML>=6.0,<7.0

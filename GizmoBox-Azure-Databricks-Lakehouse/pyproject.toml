@@ -1,0 +1,9 @@
+[project]
+name = "gizmobox-azure-databricks-lakehouse"
+version = "0.1.0"
+description = "Portfolio lakehouse project using Azure Databricks, ADLS Gen2, Delta Lake and Unity Catalog"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
