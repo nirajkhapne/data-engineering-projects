@@ -1,0 +1,4 @@
+customer_id	address_type	address_line_1	city	state	postcode
+1001	shipping	10 Example Street	Sampleton	CA	90001
+1001	billing	10 Example Street	Sampleton	CA	90001
+1002	shipping	22 Demo Avenue	Mock City	NY	10001
